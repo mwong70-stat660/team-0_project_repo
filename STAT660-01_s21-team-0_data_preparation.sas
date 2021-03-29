@@ -304,6 +304,66 @@ run;
 
 
 /*
+Inspect frpm1415_public_schools and frpm1516_public_schools for any potentially
+problematic values in columns used in research questions, and reset titles to
+null afterward (since they apply globally to all steps after they appear).
+*/
+title "Potentially Problematic Rows in frpm1415_public_schools";
+proc print data=frpm1415_public_schools;
+    where
+        missing(Percent_Eligible_FRPM_K12)
+        or
+        Percent_Eligible_Free_K12 < 0.01
+    ;
+run;
+title "Potentially Problematic Rows in frpm1516_public_schools";
+proc print data=frpm1516_public_schools;
+    where
+        missing(Percent_Eligible_FRPM_K12)
+        or
+        Percent_Eligible_Free_K12 < 0.01
+    ;
+run;
+title;
+
+
+/*
+Inspect gradaf15_public_schools for any potentially problematic values in
+columns used in research questions, and reset titles to null afterward (since
+they apply globally to all steps after they appear).
+*/
+title "Potentially Problematic Rows in gradaf15_public_schools";
+proc print data=gradaf15_public_schools;
+    where
+        missing(TOTAL)
+        or
+        TOTAL = "0"
+    ;
+run;
+title;
+
+
+/*
+Inspect sat15_public_schools for any potentially problematic values in
+columns used in research questions, and reset titles to null afterward (since
+they apply globally to all steps after they appear).
+*/
+title "Potentially Problematic Rows in sat15_public_schools";
+proc print data=sat15_public_schools;
+    where
+        missing(PCTGE1500)
+        or
+        PCTGE1500 < "0.01"
+        or
+        missing(NUMTSTTAKR)
+        or
+        NUMTSTTAKR = "0"
+    ;
+run;
+title;
+
+
+/*
 Note to learners [which is not part of this example/template]: The example below
 illustrates how much work SAS does behind the scenes when a new dataset is
 created. By default, SAS datasets are stored on disk as physical files, which
