@@ -164,6 +164,145 @@ https://github.com/stat697/team-0_project_repo/blob/master/data/sat15-edited.xls
 %mend;
 %loadDatasets
 
+
+/*
+For frpm1415_raw, the columns County_Code, District_Code, and School_Code are
+intended to form a composite key, so any rows corresponding to multiple values
+should be removed. In addition, rows should be removed if they (a) are missing
+values for any of the composite key columns or (b) have a School_Code value
+corresponding to a non-school entity or a private school.
+
+After running the proc sort step below, the new dataset frpm1415_public_schools
+will have no duplicate/repeated unique id values, and all unique id values will
+correspond to our experimental units of interest, which are California Public
+K-12 schools. This means the columns County_Code, District_Code, and School_Code
+in frpm1415_public_schools are guaranteed to form a composite key.
+*/
+proc sort
+        nodupkey
+        data=frpm1415_raw
+        dupout=frpm1415_raw_dups
+        out=frpm1415_public_schools
+    ;
+    where
+        /* remove rows with missing composite key components */
+        not(missing(County_Code))
+        and
+        not(missing(District_Code))
+        and
+        not(missing(School_Code))
+        and
+        /* remove rows for non-school entities and private schools */
+        School_Code not in ("0000000","0000001")
+    ;
+    by
+        County_Code
+        District_Code
+        School_Code
+    ;
+run;
+
+
+/*
+For frpm1516_raw, the columns County_Code, District_Code, and School_Code are
+intended to form a composite key, so any rows corresponding to multiple values
+should be removed. In addition, rows should be removed if they (a) are missing
+values for any of the composite key columns or (b) have a School_Code value
+corresponding to a non-school entity or a private school.
+
+After running the proc sort step below, the new dataset frpm1516_public_schools
+will have no duplicate/repeated unique id values, and all unique id values will
+correspond to our experimental units of interest, which are California Public
+K-12 schools. This means the columns County_Code, District_Code, and School_Code
+in frpm1516_public_schools are guaranteed to form a composite key.
+*/
+proc sort
+        nodupkey
+        data=frpm1516_raw
+        dupout=frpm1516_raw_dups
+        out=frpm1516_public_schools
+    ;
+    where
+        /* remove rows with missing composite key components */
+        not(missing(County_Code))
+        and
+        not(missing(District_Code))
+        and
+        not(missing(School_Code))
+        and
+        /* remove rows for non-school entities and private schools */
+        School_Code not in ("0000000","0000001")
+    ;
+    by
+        County_Code
+        District_Code
+        School_Code
+    ;
+run;
+
+
+/*
+For gradaf15_raw, the column CDS_CODE is a primary key, so any rows
+corresponding to multiple values should be removed. In addition, rows should be
+removed if they (a) are missing values for CDS_CODE or (b) have a CDS_CODE
+value corresponding to a non-school entity or a private school.
+
+After running the proc sort step below, the new dataset gradaf15_public_schools
+will have no duplicate/repeated unique id values, and all unique id values will
+correspond to our experimental units of interest, which are California Public
+K-12 schools. This means the column CDS_CODE in gradaf15_public_schools is
+guaranteed to be a primary key.
+*/
+proc sort
+        nodupkey
+        data=gradaf15_raw
+        dupout=gradaf15_raw_dups
+        out=gradaf15_public_schools
+    ;
+    where
+        /* remove rows with missing primary key */
+        not(missing(CDS_CODE))
+        and
+        /* remove rows for non-school entities and private schools */
+        substr(CDS_CODE,8,7) not in ("0000000","0000001")
+    ;
+    by
+        CDS_CODE
+    ;
+run;
+
+
+/*
+For sat15_raw, the column CDS is a primary key, so any rows corresponding to
+mulitple values should be removed. In addition, rows should be removed if they
+(a) are missing values for CDS or (b) have a CDS value corresponding to a
+non-school entity or a private school.
+
+After running the proc sort step below, the new dataset sat15_public_schools
+will have no duplicate/repeated unique id values, and all unique id values will
+correspond to our experimental units of interest, which are California Public
+K-12 schools. This means the column CDS in sat15_public_schools is guaranteed
+to be a primary key.
+*/
+proc sort
+        nodupkey
+        data=sat15_raw
+        dupout=sat15_raw_dups
+        out=sat15_public_schools
+    ;
+    where
+        /* remove rows with missing primary key */
+        not(missing(CDS))
+        and
+        /* remove rows for non-school entities and private schools */
+        substr(CDS,8,7) not in ("0000000","0000001")
+    ;
+    by
+        CDS
+    ;
+run;
+
+
 /*
 Note to learners [which is not part of this example/template]: The example below
 illustrates how much work SAS does behind the scenes when a new dataset is
