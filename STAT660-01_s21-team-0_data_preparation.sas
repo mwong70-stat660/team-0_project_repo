@@ -120,7 +120,7 @@ https://github.com/stat697/team-0_project_repo/blob/master/data/sat15-edited.xls
 %let inputDataset4Type = XLS;
 
 
-/* load raw datasets over the wire, if they doesn't already exist */
+/* load raw datasets over the wire, if they don't already exist */
 %macro loadDataIfNotAlreadyAvailable(dsn,url,filetype);
     %put &=dsn;
     %put &=url;
@@ -176,7 +176,7 @@ created in the 1960s, when computer resources were extremely limited, and so it
 made sense to store even small datasets on disk and load them into memory one
 record/row at a time, as needed.
 
-By contract, most modern languages, like R and Python, store datasets in memory
+By contrast, most modern languages, like R and Python, store datasets in memory
 by default. This has several trade-offs: Since DataFrames in R and Python are in
 memory, any of their elements can be accessed simultaneously, making data
 transformations fast and flexible, but DataFrames cannot be larger than
