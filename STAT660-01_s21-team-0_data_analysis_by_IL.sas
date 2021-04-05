@@ -33,6 +33,44 @@ Limitations: Values of "Percent (%) Eligible Free (K-12)" equal to zero should
 be excluded from this analysis, since they are potentially missing data values.
 */
 
+title "Inspect Percent_Eligible_FRPM_K12 from frpm1415_public_schools";
+proc means
+        data=frpm1415_public_schools
+        maxdec=1
+        missing
+        n /* number of observations */
+        nmiss /* number of missing values */
+        min q1 median q3 max  /* five-number summary */
+        mean std /* two-number summary */
+    ;
+    var 
+        Percent_Eligible_FRPM_K12
+    ;
+    label
+        Percent_Eligible_FRPM_K12=" "
+    ;
+run;
+title;
+
+title "Inspect Percent_Eligible_FRPM_K12 from frpm1516_public_schools";
+proc means
+        data=frpm1516_public_schools
+        maxdec=1
+        missing
+        n /* number of observations */
+        nmiss /* number of missing values */
+        min q1 median q3 max  /* five-number summary */
+        mean std /* two-number summary */
+    ;
+    var 
+        Percent_Eligible_FRPM_K12
+    ;
+    label
+        Percent_Eligible_FRPM_K12=" "
+    ;
+run;
+title;
+
 
 *******************************************************************************;
 * Research Question 2 Analysis Starting Point;
@@ -51,8 +89,47 @@ to the column PCTGE1500 from sat15.
 
 Limitations: Values of "Percent (%) Eligible Free (K-12)" and PCTGE1500 equal to
 zero should be excluded from this analysis, since they are potentially missing
-data values.
+data values. The dataset sat15 also has two obvious encodings for missing
+values of PCTGE1500, which will also need to be excluded.
 */
+
+/* output frequencies of PCTGE1500 to a dataset for manual inspection */
+proc freq
+        data=sat15_public_schools
+        noprint
+    ;
+    table
+        PCTGE1500
+        / out=sat15_PCTGE1500_frequencies
+    ;
+run;
+
+/* use manual inspection to create bins to study missing-value distribution */
+proc format;
+    value $PCTGE1500_bins
+        "*","NA"="Explicitly Missing"
+        "0.00"="Potentially Missing"
+        other="Valid Numerical Value"
+    ;
+run;
+
+/* inspect study missing-value distribution */
+title "Inspect PCTGE1500 from sat15_public_schools";
+proc freq
+        data=sat15_public_schools
+    ;
+    table
+        PCTGE1500
+        / nocum
+    ;
+    format
+        PCTGE1500 $PCTGE1500_bins.
+    ;
+    label
+        PCTGE1500="Percent of Students w/ SAT Scores Above 1500 (PCTGE1500)"
+    ;
+run;
+title;
 
 
 *******************************************************************************;
@@ -74,3 +151,78 @@ gradaf15.
 Limitations: Values of NUMTSTTAKR and TOTAL equal to zero should be excluded
 from this analysis, since they are potentially missing data values.
 */
+
+/* output frequencies of NUMTSTTAKR to a dataset for manual inspection */
+proc freq
+        data=sat15_public_schools
+        noprint
+    ;
+    table
+        NUMTSTTAKR
+        / out=sat15_NUMTSTTAKR_frequencies
+    ;
+run;
+
+/* use manual inspection to create bins to study missing-value distribution */
+proc format;
+    value $NUMTSTTAKR_bins
+        "0"="Potentially Missing"
+        other="Valid Numerical Value"
+    ;
+run;
+
+/* inspect missing-value distribution */
+title "Inspect PCTGE1500 from sat15_public_schools";
+proc freq
+        data=sat15_public_schools
+    ;
+    table
+        NUMTSTTAKR
+        / nocum
+    ;
+    format
+        NUMTSTTAKR $NUMTSTTAKR_bins.
+    ;
+    label
+        NUMTSTTAKR="Number of SAT Test-takers (NUMTSTTAKR)"
+    ;
+run;
+title;
+
+
+/* output frequencies of TOTAL to a dataset for manual inspection */
+proc freq
+        data=gradaf15_public_schools
+        noprint
+    ;
+    table
+        TOTAL
+        / out=gradaf15_TOTAL_frequencies
+    ;
+run;
+
+/* use manual inspection to create bins to study missing-value distribution */
+proc format;
+    value $TOTAL_bins
+        "0"="Potentially Missing"
+        other="Valid Numerical Value"
+    ;
+run;
+
+/* inspect missing-value distribution */
+title "Inspect TOTAL from gradaf15_public_schools";
+proc freq
+        data=gradaf15_public_schools
+    ;
+    table
+        TOTAL
+        / nocum
+    ;
+    format
+        TOTAL $TOTAL_bins.
+    ;
+    label
+        TOTAL="Number of UC/CSU-entrance-requirements completers (TOTAL)"
+    ;
+run;
+title;
