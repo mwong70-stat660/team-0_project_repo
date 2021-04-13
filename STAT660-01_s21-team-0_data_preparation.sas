@@ -301,3 +301,132 @@ proc sort
         CDS
     ;
 run;
+
+
+/*
+Combine FRPM data vertically, combine composite key values into a primary key,
+and compute year-over-year change in Percent_Eligible_FRPM_K12.
+*/
+data frpm1415_with_yoy_change;
+    retain
+        CDS_Code
+    ;
+    length
+        CDS_Code $15.
+        District_Name $75. /* address length mismatch in input datasets */
+    ;
+    set
+        frpm1516_public_schools(in=ay2015_data_row)
+        frpm1415_public_schools(in=ay2014_data_row)
+    ;
+    retain
+        Percent_Eligible_FRPM_K12_1516
+    ;
+    by
+        County_Code
+        District_Code
+        School_Code
+    ;
+    if
+        ay2015_data_row=1
+    then
+        do;
+            Percent_Eligible_FRPM_K12_1516 = Percent_Eligible_FRPM_K12;
+        end;
+    else if
+        ay2014_data_row=1
+        and
+        Percent_Eligible_FRPM_K12 > 0
+        and
+        substr(School_Code,1,6) ne "000000"
+    then
+        do;
+            CDS_Code = cats(County_Code,District_Code,School_Code);
+            frpm_rate_change_2014_to_2015 =
+                Percent_Eligible_FRPM_K12
+                -
+                Percent_Eligible_FRPM_K12_1516
+            ;
+            output;
+        end;
+run;
+
+
+/*
+Build final analytic dataset, including only the columns and minimal data-
+cleaning/transformation needed to address each research question/objective in
+corresponding data-analysis files.
+*/
+data cde_analytic_file;
+    retain
+        CDS_Code
+        School_Name
+        Percent_Eligible_FRPM_K12
+        frpm_rate_change_2014_to_2015
+        PCTGE1500
+        excess_sat_takers
+    ;
+    keep
+        CDS_Code
+        School_Name
+        Percent_Eligible_FRPM_K12
+        frpm_rate_change_2014_to_2015
+        PCTGE1500
+        excess_sat_takers
+    ;
+    length
+        CDS_Code $15.
+        School_Name $100.
+    ;
+    merge
+        frpm1415_with_yoy_change
+        gradaf15_public_schools
+        sat15_public_schools(rename=(CDS=CDS_Code PCTGE1500=PCTGE1500_character))
+    ;
+    by
+        CDS_Code
+    ;
+    if
+        not(missing(compress(PCTGE1500_character,'.','kd')))
+    then
+        do;
+            PCTGE1500 = input(PCTGE1500_character,best12.2);
+        end;
+    else
+        do;
+            call missing(PCTGE1500);
+        end;
+    excess_sat_takers = input(NUMTSTTAKR,best12.) - input(TOTAL,best12.);
+    if
+        not(missing(CDS_Code))
+        and
+        not(missing(School_Name))
+        and
+        not(missing(School_Name))
+    ;
+run;
+
+
+/*
+Check cde_analytic_file for rows whose unique id values are repeated, missing,
+or correspond to a non-school entity or a private school.
+
+After executing the data step below, the resulting dataset should be empty,
+meaning the match-merge above did not introduce any duplicates or malformed
+unique ids.
+*/
+data cde_analytic_file_raw_bad_ids;
+    set cde_analytic_file;
+    by CDS_Code;
+
+    if
+        first.CDS_Code*last.CDS_Code = 0
+        or
+        missing(CDS_Code)
+        or
+        substr(CDS_Code,8,7) in ("0000000","0000001")
+    then
+        do;
+            output;
+        end;
+run;
