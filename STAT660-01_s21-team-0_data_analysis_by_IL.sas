@@ -33,44 +33,22 @@ Limitations: Values of "Percent (%) Eligible Free (K-12)" equal to zero should
 be excluded from this analysis, since they are potentially missing data values.
 */
 
-title "Inspect Percent_Eligible_FRPM_K12 from frpm1415_public_schools";
-proc means
-        data=frpm1415_public_schools
-        maxdec=1
-        missing
-        n /* number of observations */
-        nmiss /* number of missing values */
-        min q1 median q3 max  /* five-number summary */
-        mean std /* two-number summary */
+/* Sort schools by FRPM eligibility increase. */
+proc sort
+        data=cde_analytic_file
+        out=cde_analytic_file_sorted
     ;
-    var 
-        Percent_Eligible_FRPM_K12
-    ;
-    label
-        Percent_Eligible_FRPM_K12=" "
-    ;
+    by descending frpm_rate_change_2014_to_2015;
+run;
+
+title
+"Top 5 Schools Experiencing the Biggest Increase in FRPM Eligibility Increase between AY2014-15 and AY2015-16."
+;
+proc print data=cde_analytic_file_sorted(obs=5);
+    id School_Name;
+    var frpm_rate_change_2014_to_2015;
 run;
 title;
-
-title "Inspect Percent_Eligible_FRPM_K12 from frpm1516_public_schools";
-proc means
-        data=frpm1516_public_schools
-        maxdec=1
-        missing
-        n /* number of observations */
-        nmiss /* number of missing values */
-        min q1 median q3 max  /* five-number summary */
-        mean std /* two-number summary */
-    ;
-    var 
-        Percent_Eligible_FRPM_K12
-    ;
-    label
-        Percent_Eligible_FRPM_K12=" "
-    ;
-run;
-title;
-
 
 *******************************************************************************;
 * Research Question 2 Analysis Starting Point;
@@ -93,40 +71,38 @@ data values. The dataset sat15 also has two obvious encodings for missing
 values of PCTGE1500, which will also need to be excluded.
 */
 
-/* output frequencies of PCTGE1500 to a dataset for manual inspection */
-proc freq
-        data=sat15_public_schools
-        noprint
-    ;
-    table
-        PCTGE1500
-        / out=sat15_PCTGE1500_frequencies
-    ;
-run;
-
-/* use manual inspection to create bins to study missing-value distribution */
+/*
+Create formats to bin values into quartiles, based on previously performed EDA.
+*/
 proc format;
-    value $PCTGE1500_bins
-        "*","NA"="Explicitly Missing"
-        "0.00"="Potentially Missing"
-        other="Valid Numerical Value"
+    value Percent_Eligible_FRPM_K12_bins
+        low-<.39="Q1 FRPM"
+        .39-<.69="Q2 FRPM"
+        .69-<.86="Q3 FRPM"
+        .86-high="Q4 FRPM"
+    ;
+    value PCTGE1500_bins
+        low-20="Q1 SAT_Scores_GE_1500"
+        20-<37="Q2 SAT_Scores_GE_1500"
+        37-<56.3="Q3 SAT_Scores_GE_1500"
+        56.3-high="Q4 SAT_Scores_GE_1500"
     ;
 run;
 
-/* inspect study missing-value distribution */
-title "Inspect PCTGE1500 from sat15_public_schools";
-proc freq
-        data=sat15_public_schools
-    ;
+title
+"Quartile-based correlation analysis for FRPM Eligibility Rate and SAT Scores."
+;
+proc freq data=cde_analytic_file;
     table
-        PCTGE1500
-        / nocum
+             Percent_Eligible_FRPM_K12
+            *PCTGE1500
+            / missing norow nocol nopercent
+    ;
+        where not(missing(PCTGE1500))
     ;
     format
-        PCTGE1500 $PCTGE1500_bins.
-    ;
-    label
-        PCTGE1500="Percent of Students w/ SAT Scores Above 1500 (PCTGE1500)"
+        Percent_Eligible_FRPM_K12 Percent_Eligible_FRPM_K12_bins.
+        PCTGE1500 PCTGE1500_bins.
     ;
 run;
 title;
@@ -152,77 +128,22 @@ Limitations: Values of NUMTSTTAKR and TOTAL equal to zero should be excluded
 from this analysis, since they are potentially missing data values.
 */
 
-/* output frequencies of NUMTSTTAKR to a dataset for manual inspection */
-proc freq
-        data=sat15_public_schools
-        noprint
+/*
+Sort schools by number of students taking the SAT exceeding the number of
+students completing UC/CSU college-preparation coursework.
+*/
+proc sort
+        data=cde_analytic_file
+        out=cde_analytic_file_sorted
     ;
-    table
-        NUMTSTTAKR
-        / out=sat15_NUMTSTTAKR_frequencies
-    ;
+    by descending excess_sat_takers;
 run;
 
-/* use manual inspection to create bins to study missing-value distribution */
-proc format;
-    value $NUMTSTTAKR_bins
-        "0"="Potentially Missing"
-        other="Valid Numerical Value"
-    ;
-run;
-
-/* inspect missing-value distribution */
-title "Inspect PCTGE1500 from sat15_public_schools";
-proc freq
-        data=sat15_public_schools
-    ;
-    table
-        NUMTSTTAKR
-        / nocum
-    ;
-    format
-        NUMTSTTAKR $NUMTSTTAKR_bins.
-    ;
-    label
-        NUMTSTTAKR="Number of SAT Test-takers (NUMTSTTAKR)"
-    ;
-run;
-title;
-
-
-/* output frequencies of TOTAL to a dataset for manual inspection */
-proc freq
-        data=gradaf15_public_schools
-        noprint
-    ;
-    table
-        TOTAL
-        / out=gradaf15_TOTAL_frequencies
-    ;
-run;
-
-/* use manual inspection to create bins to study missing-value distribution */
-proc format;
-    value $TOTAL_bins
-        "0"="Potentially Missing"
-        other="Valid Numerical Value"
-    ;
-run;
-
-/* inspect missing-value distribution */
-title "Inspect TOTAL from gradaf15_public_schools";
-proc freq
-        data=gradaf15_public_schools
-    ;
-    table
-        TOTAL
-        / nocum
-    ;
-    format
-        TOTAL $TOTAL_bins.
-    ;
-    label
-        TOTAL="Number of UC/CSU-entrance-requirements completers (TOTAL)"
-    ;
+title
+"Top 10 Schools with more students taking the SAT than completing UC/CSU college-preparation coursework."
+;
+proc print data=cde_analytic_file_sorted(obs=10);
+    id School_Name;
+    var excess_sat_takers;
 run;
 title;
