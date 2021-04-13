@@ -406,3 +406,27 @@ data cde_analytic_file;
     ;
 run;
 
+
+/*
+Check cde_analytic_file for rows whose unique id values are repeated, missing,
+or correspond to a non-school entity or a private school.
+
+After executing the data step below, the resulting dataset should be empty,
+meaning the match-merge above did not introduce any duplicates or malformed
+unique ids.
+*/
+data cde_analytic_file_raw_bad_ids;
+    set cde_analytic_file;
+    by CDS_Code;
+
+    if
+        first.CDS_Code*last.CDS_Code = 0
+        or
+        missing(CDS_Code)
+        or
+        substr(CDS_Code,8,7) in ("0000000","0000001")
+    then
+        do;
+            output;
+        end;
+run;
