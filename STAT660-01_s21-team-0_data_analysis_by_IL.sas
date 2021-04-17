@@ -25,6 +25,14 @@ to the column of the same name from frpm1516.
 
 Limitations: Values of "Percent (%) Eligible Free (K-12)" equal to zero should
 be excluded from this analysis, since they are potentially missing data values.
+
+Methodology: Use proc sort to create a temporary sorted table in descending
+order by frpm_rate_change_2014_to_2015, with ties broken by school name. Then
+use proc print to print the first five rows of the sorted dataset.
+
+Followup Steps: More carefully clean values in order to filter out any possible
+illegal values, and better handle missing data, e.g., by using a previous year's
+data or a rolling average of previous years' data as a proxy.
 */
 
 /* Sort schools by FRPM eligibility increase. */
@@ -90,6 +98,14 @@ Limitations: Values of "Percent (%) Eligible Free (K-12)" and PCTGE1500 equal to
 zero should be excluded from this analysis, since they are potentially missing
 data values. The dataset sat15 also has two obvious encodings for missing
 values of PCTGE1500, which will also need to be excluded.
+
+Methodology: Use proc corr to perform a correlation analysis, and then use proc
+sgplot to output a scatterplot, illustrating the correlation present
+
+Followup Steps: A possible follow-up to this approach could use a more formal
+inferential technique like regression, which could be used to determine more
+than the existence of fairly strong linear relationship. Also, modeling
+assumptions could be more rigorously verified.
 */
 
 title1 justify=left
@@ -172,6 +188,14 @@ gradaf15.
 
 Limitations: Values of NUMTSTTAKR and TOTAL equal to zero should be excluded
 from this analysis, since they are potentially missing data values.
+
+Methodology: Use proc sort to create a temporary sorted table in descending
+order by excess_sat_takers, with ties broken by school name. Then use proc
+print to print the first ten rows of the sorted dataset.
+
+Followup Steps: More carefully clean values in order to filter out any possible
+illegal values, and better handle missing data, e.g., by using a previous year's
+data or a rolling average of previous years' data as a proxy.
 */
 
 /*
