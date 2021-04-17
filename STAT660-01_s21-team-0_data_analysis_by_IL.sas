@@ -88,6 +88,15 @@ proc corr
 run;
 title;
 
+title "Scatter Plot of FRPM Eligibility Rate and SAT Scores.";
+proc sgplot data=cde_analytic_file;
+    scatter
+        x=Percent_Eligible_FRPM_K12
+        y=PCTGE1500
+    ;
+run;
+title;
+
 
 *******************************************************************************;
 * Research Question 3 Analysis Starting Point;
