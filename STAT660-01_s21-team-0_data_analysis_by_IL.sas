@@ -71,38 +71,19 @@ data values. The dataset sat15 also has two obvious encodings for missing
 values of PCTGE1500, which will also need to be excluded.
 */
 
-/*
-Create formats to bin values into quartiles, based on previously performed EDA.
-*/
-proc format;
-    value Percent_Eligible_FRPM_K12_bins
-        low-<.39="Q1 FRPM"
-        .39-<.69="Q2 FRPM"
-        .69-<.86="Q3 FRPM"
-        .86-high="Q4 FRPM"
+title "Formal correlation analysis for FRPM Eligibility Rate and SAT Scores.";
+proc corr
+        data=cde_analytic_file
+        nosimple
     ;
-    value PCTGE1500_bins
-        low-20="Q1 SAT_Scores_GE_1500"
-        20-<37="Q2 SAT_Scores_GE_1500"
-        37-<56.3="Q3 SAT_Scores_GE_1500"
-        56.3-high="Q4 SAT_Scores_GE_1500"
+    var
+        Percent_Eligible_FRPM_K12
+        PCTGE1500
     ;
-run;
-
-title
-"Quartile-based correlation analysis for FRPM Eligibility Rate and SAT Scores."
-;
-proc freq data=cde_analytic_file;
-    table
-             Percent_Eligible_FRPM_K12
-            *PCTGE1500
-            / missing norow nocol nopercent
-    ;
-        where not(missing(PCTGE1500))
-    ;
-    format
-        Percent_Eligible_FRPM_K12 Percent_Eligible_FRPM_K12_bins.
-        PCTGE1500 PCTGE1500_bins.
+    where
+        not(missing(Percent_Eligible_FRPM_K12))
+        and
+        not(missing(PCTGE1500))
     ;
 run;
 title;
